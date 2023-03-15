@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  elixir:
+    build: .
+    command: ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+    # command: ["poetry", "config", "--list"]
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: bind
+        source: .
+        target: /app/integrations
+      - type: bind
+        source: /tmp
+        target: /app/tmp
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    networks:
+      - elixir
+
+networks:
+  elixir:
+    driver: bridge
