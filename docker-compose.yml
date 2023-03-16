@@ -2,6 +2,8 @@ version: '3.7'
 
 services:
   elixir:
+    env_file:
+      - .env
     build: .
     command: ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
     # command: ["poetry", "config", "--list"]

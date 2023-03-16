@@ -151,5 +151,7 @@ docs: dev-tools-check
 	@cd docs && make html CONTAINER=$(CONTAINER)
 
 poetry:
-
 	@docker compose run --rm $(CONTAINER) poetry $(CMD)
+
+createsuperuser:
+	@docker compose run $(CONTAINER) poetry run python manage.py createsuperuser --noinput
