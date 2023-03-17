@@ -121,7 +121,7 @@ router.register("fields", FieldViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("core/", include("core.urls")),
+    path("customer-api/", include("core.urls")),
     path("", include(router.urls)),
     path("api/", include("rest_framework.urls")),
 ]
