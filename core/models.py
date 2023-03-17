@@ -21,7 +21,7 @@ class Object(models.Model):
     counter_lock = Lock()
 
     def get_absolute_url(self):
-        return f"/core/objects/{self.id}/"
+        return f"/core/{self.service}/objects/{self.id}/"
 
     def save(self, force_insert=False, force_update=False, **kwargs):
         if not self.id:
@@ -70,11 +70,11 @@ class Object(models.Model):
 
 class Field(models.Model):
     FORM_TYPES = (
-        ("CHAR", "- SHORT TEXT (Titles, Names etc)"),
-        ("TEXT", "- LARGE TEXT (Rich Text Editor)"),
-        ("INTEGER", "- INTEGER"),
-        ("FLOAT", "- DECIMAL (i.e., Amount (g) = 23.72)"),
-        ("BOOLEAN", "- CHECKBOX (True / False)"),
+        ("CHAR", "SHORT TEXT (Titles, Names etc)"),
+        ("TEXT", "LARGE TEXT (Rich Text Editor)"),
+        ("INTEGER", "INTEGER"),
+        ("FLOAT", "DECIMAL (i.e., Amount (g) = 23.72)"),
+        ("BOOLEAN", "CHECKBOX (True / False)"),
     )
 
     object = models.ForeignKey(Object, on_delete=models.CASCADE)

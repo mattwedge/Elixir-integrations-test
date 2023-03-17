@@ -1,8 +1,10 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
+from django.views.generic import ListView
+from django.http import JsonResponse
 
 from . import models
 
-def object(request, pk: int):
+def object(request, service: str, pk: int):
     object = get_object_or_404(models.Object, pk=pk)
     data = {
         field.name: models.Form.objects.filter(object=object, field=field).first()
@@ -11,5 +13,5 @@ def object(request, pk: int):
 
     return render(request, "core/object.html", {"object": object, "data": data})
 
-def list_objects(request):
-    return render(request, "core/objects.html", {"objects": models.Object.objects.all()})
+class AllObjects(ListView):
+    model = models.Object
