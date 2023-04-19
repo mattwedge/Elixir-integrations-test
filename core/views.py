@@ -1,12 +1,108 @@
-from django.views.generic import ListView
-from django.core.serializers import serialize
-from django.http import JsonResponse
+import json
+
+from django.views.generic import View
+from django.http import JsonResponse, HttpResponseNotAllowed
 
 from . import models
 
 
-class ServiceView(ListView):
+class InvalidFieldType(Exception):
+    pass
+
+
+class ImportResult:
+    def __init__(self):
+        self.created = 0
+        self.updated = 0
+        self.errors = []
+
+        self.service_id = 0
+
+        self.ticket_ids = []
+        self.updated_ticket_ids = []
+
+        self.task_ids = []
+        self.updated_task_ids = []
+
+    def __str__(self):
+        if self.errors:
+            return ', '.join(self.errors)
+
+        return ', '.join([f'Service: {self.service_id} -> tickets created: {self.created}', f'updated: {self.updated}'])
+
+
+class CustomerAPI(View):
     def get(self, request, *args, **kwargs):
-        return JsonResponse({
-            "services": [{"name": s.name, "description": s.description} for s in models.Service.objects.all()]
-        })
+        return HttpResponseNotAllowed(["POST"])
+
+    def build_ticket(self, service: models.Service, obj: models.Object, payload: dict, result: ImportResult) -> JsonResponse:
+        for field_data in payload.get("fields", []):
+            lookup = {k:v for k, v in {
+                "object": obj,
+                "name": field_data["name"],
+                "form_type": field_data.get("type"),
+                "description": field_data.get("description"),
+            }.items() if v}
+
+            field, _ = models.Field.objects.get_or_create(**lookup)
+
+            if field.form_type == "CHAR":
+                form, _ = models.CharacterForm.objects.get_or_create(object=obj, field=field)
+                form.value = field_data["value"]
+                form.save()
+
+            elif field.form_type == "TEXT":
+                form, _ = models.TextForm.objects.get_or_create(object=obj, field=field)
+                form.value = field_data["value"]
+                form.save()
+
+            elif field.form_type == "INTEGER":
+                form, _ = models.IntegerForm.objects.get_or_create(object=obj, field=field)
+                form.value = field_data["value"]
+                form.save()
+
+            elif field.form_type == "FLOAT":
+                form, _ = models.FloatForm.objects.get_or_create(object=obj, field=field)
+                form.value = field_data["value"]
+                form.save()
+
+            elif field.form_type == "BOOLEAN":
+                form, _ = models.BooleanForm.objects.get_or_create(object=obj, field=field)
+                form.value = field_data["value"]
+                form.save()
+
+            else:
+                result.errors += f"{field.form_type} does not exist"
+
+
+    def post(self, request, *args, **kwargs):
+        json_payload = json.loads(request.body)
+
+        if not json_payload.get("service"):
+            return JsonResponse({"msg": "Error: No service provided!"})
+
+        if not models.Service.objects.filter(name__iexact=json_payload.get("service")):
+            return JsonResponse({"msg": "Error: Service does not exist!"})
+
+        if not json_payload.get("objects"):
+            return JsonResponse({"msg": "Error: No objects to process!"})
+
+        service_name = json_payload["service"]
+        service = models.Service.objects.get(name=service_name)
+
+        import_result = ImportResult()
+        import_result.service_id = service.id
+
+        for payload in json_payload.get("objects"):
+            if "human_id" in payload:
+                obj = models.Object.load(payload['human_id'])
+                import_result.updated += 1
+
+            else:
+                obj = models.Object(service=service)
+                obj.save()
+                import_result.created += 1
+
+            self.build_ticket(service, obj, payload, import_result)
+
+        return JsonResponse({"result": str(import_result)})

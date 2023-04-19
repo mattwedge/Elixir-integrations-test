@@ -1,6 +1,7 @@
 from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
 from . import views
 
 urlpatterns = [
-    path("service/", views.ServiceView.as_view(), name="service_view"),
+    path("", csrf_exempt(views.CustomerAPI.as_view()), name="customer_api"),
 ]

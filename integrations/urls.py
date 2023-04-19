@@ -96,12 +96,13 @@ class ServiceViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
 
 class ObjectSerializer(serializers.HyperlinkedModelSerializer):
-    def get_form_set(self, obj):
-        return obj.form_set.all()
+    service = ServiceSerializer()
+    field_set = FieldSerializer(many=True)
+    form_set = FormSerializer(many=True)
 
     class Meta:
         model = models.Object
-        fields = ["object_counter", "service", "form_set"]
+        fields = ["pk", "human_id", "service", "field_set", "form_set"]
 
 class ObjectViewSet(viewsets.ModelViewSet):
     queryset = models.Object.objects.all()

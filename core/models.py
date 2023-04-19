@@ -1,5 +1,7 @@
 from threading import Lock
 from polymorphic.models import PolymorphicModel
+from typing import Optional, Tuple
+import re
 
 from django.db import models, transaction
 
@@ -19,6 +21,65 @@ class Object(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
 
     counter_lock = Lock()
+
+    @property
+    def human_id(self):
+        return f"{self.service.name}-{self.object_counter}"
+
+    @staticmethod
+    def load(human_id: str) -> 'Object':
+        try:
+            service, ticket = Object.extract_human_id_parts(human_id)
+            service = Service.objects.get(name=service)
+
+            return Object.objects.get(service=service, object_counter=ticket)
+
+        except (Service.DoesNotExist, ValueError) as ex:
+            raise Object.DoesNotExist from ex
+
+    @staticmethod
+    def extract_human_id_parts(human_id: str, service: Optional[str] = '') -> Tuple[str, str]:
+        BAD_HUMAN_ID_FORMAT_ERROR_STRING = 'Bad value for human_id. Correct format is <SERVICE>-<ITEM>, got {}'
+
+        if service:
+            if human_id.startswith(service):
+                human_id = human_id[len(service):]
+
+            else:
+                raise ValueError(f'Service name, <{service}>, does not match human ID, <{human_id}>')
+
+        human_id_parts = re.search(r'-(\d+)-(\d+)$', human_id)
+
+        if not human_id_parts:
+            human_id_parts = re.search(r'-(\d+)$', human_id)
+
+            if not human_id_parts:
+                raise ValueError(BAD_HUMAN_ID_FORMAT_ERROR_STRING.format(human_id))
+
+        start_of_number_match, _ = human_id_parts.span()
+        service_name = service or human_id[0:start_of_number_match]
+
+        if len(service_name) == 0:
+            raise ValueError(BAD_HUMAN_ID_FORMAT_ERROR_STRING.format(human_id))
+
+        ticket_ctr = human_id_parts.groups()[0]
+
+        if not service and len(human_id_parts.groups()) == 2:
+            try:
+                Service.objects.get(name=service_name)
+
+            except Service.DoesNotExist:
+                possible_name = f'{service_name}-{human_id_parts.groups()[0]}'
+
+                try:
+                    Service.objects.get(name=possible_name)
+                    service_name = possible_name
+                    ticket_ctr = human_id_parts.groups()[1]
+
+                except Service.DoesNotExist:
+                    pass
+
+        return service_name, ticket_ctr
 
     def get_absolute_url(self):
         return f"/core/{self.service}/objects/{self.id}/"
@@ -101,7 +162,7 @@ class Form(PolymorphicModel):
     value = None
 
     def __str__(self):
-        return f"{self.field.name} - {self.value}"
+        return f"{self.object}: {self.field.name} - {self.value}"
 
 class IntegerForm(Form):
     type = models.CharField(default='int', editable=False, max_length=3)
