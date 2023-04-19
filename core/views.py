@@ -21,14 +21,15 @@ class ImportResult:
         self.ticket_ids = []
         self.updated_ticket_ids = []
 
-        self.task_ids = []
-        self.updated_task_ids = []
-
     def __str__(self):
         if self.errors:
             return ', '.join(self.errors)
 
-        return ', '.join([f'Service: {self.service_id} -> tickets created: {self.created}', f'updated: {self.updated}'])
+        return ', '.join([
+            f"Service: {self.service_id}",
+            f"tickets created: {self.created} ({self.ticket_ids})",
+            f"updated: {self.updated} ({self.updated_ticket_ids})",
+        ])
 
 
 class CustomerAPI(View):
@@ -81,14 +82,8 @@ class CustomerAPI(View):
         if not json_payload.get("service"):
             return JsonResponse({"msg": "Error: No service provided!"})
 
-        if not models.Service.objects.filter(name__iexact=json_payload.get("service")):
-            return JsonResponse({"msg": "Error: Service does not exist!"})
-
-        if not json_payload.get("objects"):
-            return JsonResponse({"msg": "Error: No objects to process!"})
-
         service_name = json_payload["service"]
-        service = models.Service.objects.get(name=service_name)
+        service, _ = models.Service.objects.get_or_create(name=service_name)
 
         import_result = ImportResult()
         import_result.service_id = service.id
@@ -97,11 +92,13 @@ class CustomerAPI(View):
             if "human_id" in payload:
                 obj = models.Object.load(payload['human_id'])
                 import_result.updated += 1
+                import_result.updated_ticket_ids.append(obj.id)
 
             else:
                 obj = models.Object(service=service)
                 obj.save()
                 import_result.created += 1
+                import_result.ticket_ids.append(obj.id)
 
             self.build_ticket(service, obj, payload, import_result)
 
