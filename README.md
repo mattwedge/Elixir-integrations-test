@@ -14,33 +14,29 @@ Please see the Makefile for specifics.
 
 ## Usage
 
-There is a web server that starts up and has some common end points
+There is a web server that starts up and runs on: http://localhost:8000/
 
-http://localhost:8000/
-http://localhost:8000/customer-api/
+## The test
 
-The first url is for use in the web browser, the second is a POST ONLY end point allowing for a developer to post data to ingest it into the system
+### Description Of Problem
 
-While the models can be used to represent anything (due to their abstract nature) I used data from the following services as examples:
+At Elixir we often have to work with third party apis and ingest data into our system, we write bespoke programs that we call `biz_rules` to perform this integration. This test is a scale model of the sort of work we do quite frequently and is quite reflective of what a typical day might look like. Your task will be to write a biz_rule, we have selected some apis and you may choose whichever one you like and write the code in the matching `core/management/commands/<service>` file.
+
+You may need to use the django admin panel and create a service for your chosen api, you will then have to analyse the data from the api, create fields and forms to represent a single object returned from the api in the django admin.
+
+It is important to think carefully how to represent a given object, once you have designed the object representation you will ingest data from the api.
+
+Use the models directly and do not use the `customer-api` route when writing your biz_rule.
+
+### The Services
 
 - https://pokemontcg.io/
 - https://scryfall.com/docs/api
 - https://developer.marvel.com/
 - https://rapidapi.com/omgvamp/api/hearthstone
 
-In reality any service can be used, but why not have a bit of fun with it?
 
-The customer api supposed both creation and updating and returns a json object with the status of the change
-
-And example of a post is here:
-
-```curl -X POST localhost:8000/customer-api/ -d '{"service": "Scryfall", "objects": [{"human_id": "Scryfall-7", "fields": [{"name": "CMC", "value": 4}]}, {"fields": [{"name": "CMC", "value": 2, "type": "INTEGER"}]}]}' -H "Content-Type: application/json"```
-
-## The test
-
-Using the django admin panel create a service for one of the APIs listed above, you will then have to analyse the data from the api and create fields and forms to represent a single object returned from the api in the django api. It is important to think carefully how to represent a given object, once you have designed the object representation you will ingest data from the api.
-
-You will write your implementation in `core/management/commands/{service}.py` as this can easily be run as a management command.
+### Running your biz_rule
 
 Running your code is as simple as `make <service>` where the service is one of:
 
@@ -48,5 +44,3 @@ Running your code is as simple as `make <service>` where the service is one of:
 - hearthstone
 - pokemon
 - marvel
-
-Use the models directly to create the data in the system.

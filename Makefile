@@ -126,13 +126,13 @@ shell:
 test: dev-tools-check
 	@rm -rf coverage
 ifneq ($(and $(TEST-CASE),$(SRC)),)
-	@docker compose run --rm $(SERVICE) coverage run --source=$(SRC) --branch ./manage.py test --no-input $(TEST-CASE); docker-compose run --rm $(SERVICE) coverage $(REPORT)
+	@docker compose run --rm $(SERVICE) poetry run coverage run --source=$(SRC) --branch ./manage.py test --no-input $(TEST-CASE); docker-compose run --rm $(SERVICE) poetry run coverage $(REPORT)
 else ifneq ($(SRC),)
-	@docker compose run --rm $(SERVICE) coverage run --source=$(SRC) --branch ./manage.py test --no-input; docker-compose run --rm $(SERVICE) coverage $(REPORT)
+	@docker compose run --rm $(SERVICE) poetry run coverage run --source=$(SRC) --branch ./manage.py test --no-input; docker-compose run --rm $(SERVICE) poetry run coverage $(REPORT)
 else ifneq ($(TEST-CASE),)
-	@docker compose run --rm $(SERVICE) coverage run --branch ./manage.py test --no-input $(TEST-CASE) --parallel
+	@docker compose run --rm $(SERVICE) poetry run coverage run --branch ./manage.py test --no-input $(TEST-CASE) --parallel
 else
-	@docker compose run --rm $(SERVICE) coverage run --branch ./manage.py test --no-input --parallel
+	@docker compose run --rm $(SERVICE) poetry run coverage run --branch ./manage.py test --no-input --parallel
 endif
 	@rm -rf .coverage.*
 
@@ -147,7 +147,7 @@ clean-docs:
 clean: clean-docker clean-docs
 
 docs: dev-tools-check
-	@docker compose run --rm $(SERVICE) poetry run sphinx-apidoc -f -o docs/source/ . ./*/test/*.py ./tests/*.py ./*/migrations/*.py ./*/tests/*.py ./settings/environments/*.py ./settings/*.py ./debug_snippet.py ./scinamic/update_compounds_from_scinamic.py
+	@docker compose run --rm $(SERVICE) poetry run sphinx-apidoc -f -o docs/source/ . ./*/test/*.py ./tests/*.py ./*/migrations/*.py ./*/tests/*.py ./settings/*.py
 	@cd docs && make html SERVICE=$(SERVICE)
 
 poetry:

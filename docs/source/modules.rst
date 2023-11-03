@@ -1,7 +1,9 @@
-elixir-integrations
-========
+integrations
+============
 
 .. toctree::
    :maxdepth: 4
 
-   elixir-integrations
+   core
+   integrations
+   manage
