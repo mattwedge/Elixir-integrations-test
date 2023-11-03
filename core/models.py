@@ -1,6 +1,6 @@
 from threading import Lock
 from polymorphic.models import PolymorphicModel
-from typing import Optional, Tuple
+from typing import Optional
 import re
 
 from django.db import models, transaction
@@ -27,7 +27,7 @@ class Object(models.Model):
         return f"{self.service.name}-{self.object_counter}"
 
     @staticmethod
-    def load(human_id: str) -> 'Object':
+    def load(human_id: str) -> "Object":
         try:
             service, ticket = Object.extract_human_id_parts(human_id)
             service = Service.objects.get(name=service)
@@ -38,20 +38,20 @@ class Object(models.Model):
             raise Object.DoesNotExist from ex
 
     @staticmethod
-    def extract_human_id_parts(human_id: str, service: Optional[str] = '') -> Tuple[str, str]:
-        BAD_HUMAN_ID_FORMAT_ERROR_STRING = 'Bad value for human_id. Correct format is <SERVICE>-<ITEM>, got {}'
+    def extract_human_id_parts(human_id: str, service: Optional[str] = '') -> tuple[str, str]:
+        BAD_HUMAN_ID_FORMAT_ERROR_STRING = "Bad value for human_id. Correct format is <SERVICE>-<ITEM>, got {}"
 
         if service:
             if human_id.startswith(service):
                 human_id = human_id[len(service):]
 
             else:
-                raise ValueError(f'Service name, <{service}>, does not match human ID, <{human_id}>')
+                raise ValueError(f"Service name, <{service}>, does not match human ID, <{human_id}>")
 
-        human_id_parts = re.search(r'-(\d+)-(\d+)$', human_id)
+        human_id_parts = re.search(r"-(\d+)-(\d+)$", human_id)
 
         if not human_id_parts:
-            human_id_parts = re.search(r'-(\d+)$', human_id)
+            human_id_parts = re.search(r"-(\d+)$", human_id)
 
             if not human_id_parts:
                 raise ValueError(BAD_HUMAN_ID_FORMAT_ERROR_STRING.format(human_id))
@@ -85,24 +85,28 @@ class Object(models.Model):
         return f"/core/{self.service}/objects/{self.id}/"
 
     def save(self, force_insert=False, force_update=False, **kwargs):
-        if not self.id:
-            self.allocate_next_object_counter(force_insert, force_update, **kwargs)
+        if self.id:
+            update = True
 
-        update = True
-        current = None
+            try:
+                Object.objects.get(pk=self.id)
 
-        try:
-            current = Object.objects.get(pk=self.id)
+            except Object.DoesNotExist:
+                pass
 
-        except Object.DoesNotExist:
-            current = None
+        else:
             update = False
 
-        super(Object, self).save(force_insert, force_update, **kwargs)
+        # need counter for project
+        if not update:
+            self.allocate_next_object_counter(force_insert, force_update, **kwargs)
 
-    def allocate_next_object_counter(self, force_insert, force_update, **kwargs):
+        else:
+            super(Object, self).save(force_insert, force_update, **kwargs)
+
+    def allocate_next_object_counter(self, force_insert, force_update, **kwargs) -> None:
         similar_objects = Object.objects.filter(service=self.service)
-        similar_objects = similar_objects.select_for_update().order_by('-object_counter')
+        similar_objects = similar_objects.select_for_update().order_by("-object_counter")
 
         with Object.counter_lock, transaction.atomic():
             max_counter = 0
@@ -135,29 +139,33 @@ class Field(models.Model):
     INTEGER = "INTEGER"
     FLOAT = "FLOAT"
     BOOLEAN = "BOOLEAN"
+    DATE = "DATE"
+    URL = "URL"
 
     FORM_TYPES = (
-        (CHAR, "SHORT TEXT (Titles, Names etc)"),
-        (TEXT, "LARGE TEXT (Rich Text Editor)"),
+        (CHAR, "SHORT TEXT"),
+        (TEXT, "LARGE TEXT"),
         (INTEGER, "INTEGER"),
-        (FLOAT, "DECIMAL (i.e., Amount (g) = 23.72)"),
-        (BOOLEAN, "CHECKBOX (True / False)"),
+        (FLOAT, "DECIMAL"),
+        (BOOLEAN, "CHECKBOX"),
+        (DATE, "DATE"),
+        (URL, "URL"),
     )
 
-    object = models.ForeignKey(Object, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField()
-    form_type = models.CharField(max_length=8, choices=FORM_TYPES)
+    form_type = models.CharField(max_length=16, choices=FORM_TYPES)
     order = models.IntegerField(default=1)
 
     def save(self, **kwargs):
-        if not self.id and (max_counter := Field.objects.filter(object=self.object).order_by('-order')):
-            self.order = max_counter[0].order + 1  if max_counter else 1
+        if not self.id and (max_counter := Field.objects.filter(service=self.service).order_by("-order")):
+            self.order = max_counter[0].order + 1 if max_counter else 1
 
         super(Field, self).save(**kwargs)
 
     def __str__(self):
-        return f"{self.object}: {self.name} ({self.form_type})"
+        return f"{self.service}: {self.name} ({self.form_type})"
 
     def __repr__(self):
         return f"<Field: {str(self)}>"
@@ -171,21 +179,29 @@ class Form(PolymorphicModel):
         return f"{self.object}: {self.field.name} - {self.value}"
 
 class IntegerForm(Form):
-    type = models.CharField(default='int', editable=False, max_length=3)
+    type = models.CharField(default="int", editable=False, max_length=3)
     value = models.IntegerField(default=0, null=True, blank=True)
 
 class FloatForm(Form):
-    type = models.CharField(default='float', editable=False, max_length=5)
+    type = models.CharField(default="float", editable=False, max_length=5)
     value = models.FloatField(default=0.0, null=True, blank=True)
 
 class CharacterForm(Form):
-    type = models.CharField(default='char', editable=False, max_length=4)
+    type = models.CharField(default="char", editable=False, max_length=4)
     value = models.CharField(max_length=255, default="", null=True, blank=True)
 
 class TextForm(Form):
-    type = models.CharField(default='text', editable=False, max_length=4)
+    type = models.CharField(default="text", editable=False, max_length=4)
     value = models.TextField(default="", null=True, blank=True)
 
 class BooleanForm(Form):
-    type = models.CharField(default='bool', editable=False, max_length=4)
+    type = models.CharField(default="bool", editable=False, max_length=4)
     value = models.BooleanField(default=False, null=True, blank=True)
+
+class DateForm(Form):
+    type = models.CharField(default="date", editable=False, max_length=4)
+    value = models.DateField()
+
+class URLForm(Form):
+    type = models.CharField(default="url", editable=False, max_length=4)
+    value = models.URLField()

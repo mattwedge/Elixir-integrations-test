@@ -86,7 +86,27 @@ class BooleanFormViewSet(viewsets.ModelViewSet):
     queryset = models.BooleanForm.objects.all()
     serializer_class = BooleanFormSerializer
 
+class DateFormSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = models.DateForm
+        fields = "__all__"
+
+class DateFormViewSet(viewsets.ModelViewSet):
+    queryset = models.DateForm.objects.all()
+    serializer_class = DateFormSerializer
+
+class URLFormSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = models.URLForm
+        fields = "__all__"
+
+class URLFormViewSet(viewsets.ModelViewSet):
+    queryset = models.URLForm.objects.all()
+    serializer_class = URLFormSerializer
+
 class ServiceSerializer(serializers.HyperlinkedModelSerializer):
+    field_set = FieldSerializer(many=True)
+
     class Meta:
         model = models.Service
         fields = "__all__"
@@ -97,12 +117,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
 class ObjectSerializer(serializers.HyperlinkedModelSerializer):
     service = ServiceSerializer()
-    field_set = FieldSerializer(many=True)
     form_set = FormSerializer(many=True)
 
     class Meta:
         model = models.Object
-        fields = ["pk", "human_id", "service", "field_set", "form_set"]
+        fields = ["pk", "human_id", "service", "form_set"]
 
 class ObjectViewSet(viewsets.ModelViewSet):
     queryset = models.Object.objects.all()
@@ -117,6 +136,8 @@ router.register("text_forms", TextFormViewSet)
 router.register("character_forms", CharacterFormViewSet)
 router.register("float_forms", FloatFormViewSet)
 router.register("integer_forms", IntegerFormViewSet)
+router.register("date_forms", DateFormViewSet)
+router.register("url_forms", URLFormViewSet)
 router.register("forms", FormViewSet)
 router.register("fields", FieldViewSet)
 
