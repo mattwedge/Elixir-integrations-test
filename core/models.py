@@ -130,12 +130,18 @@ class Object(models.Model):
         return f"<Object: {str(self)}>"
 
 class Field(models.Model):
+    CHAR = "CHAR"
+    TEXT = "TEXT"
+    INTEGER = "INTEGER"
+    FLOAT = "FLOAT"
+    BOOLEAN = "BOOLEAN"
+
     FORM_TYPES = (
-        ("CHAR", "SHORT TEXT (Titles, Names etc)"),
-        ("TEXT", "LARGE TEXT (Rich Text Editor)"),
-        ("INTEGER", "INTEGER"),
-        ("FLOAT", "DECIMAL (i.e., Amount (g) = 23.72)"),
-        ("BOOLEAN", "CHECKBOX (True / False)"),
+        (CHAR, "SHORT TEXT (Titles, Names etc)"),
+        (TEXT, "LARGE TEXT (Rich Text Editor)"),
+        (INTEGER, "INTEGER"),
+        (FLOAT, "DECIMAL (i.e., Amount (g) = 23.72)"),
+        (BOOLEAN, "CHECKBOX (True / False)"),
     )
 
     object = models.ForeignKey(Object, on_delete=models.CASCADE)

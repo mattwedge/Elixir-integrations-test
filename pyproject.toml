@@ -18,6 +18,7 @@ django-polymorphic = "^3.1.0"
 djangorestframework = "^3.14.0"
 markdown = "^3.4.1"
 django-filter = "^22.1"
+requests = "^2.31.0"
 
 
 [build-system]

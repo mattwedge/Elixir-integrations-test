@@ -6,10 +6,6 @@ from django.http import JsonResponse, HttpResponseNotAllowed
 from . import models
 
 
-class InvalidFieldType(Exception):
-    pass
-
-
 class ImportResult:
     def __init__(self):
         self.created = 0
@@ -47,27 +43,27 @@ class CustomerAPI(View):
 
             field, _ = models.Field.objects.get_or_create(**lookup)
 
-            if field.form_type == "CHAR":
+            if field.form_type == models.Field.CHAR:
                 form, _ = models.CharacterForm.objects.get_or_create(object=obj, field=field)
                 form.value = field_data["value"]
                 form.save()
 
-            elif field.form_type == "TEXT":
+            elif field.form_type == models.Field.TEXT:
                 form, _ = models.TextForm.objects.get_or_create(object=obj, field=field)
                 form.value = field_data["value"]
                 form.save()
 
-            elif field.form_type == "INTEGER":
+            elif field.form_type == models.Field.INTEGER:
                 form, _ = models.IntegerForm.objects.get_or_create(object=obj, field=field)
                 form.value = field_data["value"]
                 form.save()
 
-            elif field.form_type == "FLOAT":
+            elif field.form_type == models.Field.FLOAT:
                 form, _ = models.FloatForm.objects.get_or_create(object=obj, field=field)
                 form.value = field_data["value"]
                 form.save()
 
-            elif field.form_type == "BOOLEAN":
+            elif field.form_type == models.Field.BOOLEAN:
                 form, _ = models.BooleanForm.objects.get_or_create(object=obj, field=field)
                 form.value = field_data["value"]
                 form.save()

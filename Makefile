@@ -1,4 +1,4 @@
-.PHONY: build clean clean-docker clean-docs docs help repl test shell start stop lint migrate migrations dev-tools-check lint-tools-check poetry
+.PHONY: build clean clean-docker clean-docs docs help repl test shell start stop lint migrate migrations dev-tools-check lint-tools-check poetry logs mtg
 .DEFAULT_GOAL: help
 
 # define standard colors
@@ -14,7 +14,7 @@ REPORT := $(or $(REPORT),report -m)
 GIT_CHANGED_PYTHON_FILES := $(shell git diff --name-only -- '***.py')
 LINTING_TOOLS := $(and $(shell which black),$(shell which isort),$(shell which flake8))
 DEV_TOOLS := $(shell which docker compose)
-CONTAINER := $(or $(CONTAINER),elixir)
+SERVICE := $(or $(SERVICE),elixir)
 
 help:
 	@echo "${GREEN}+--------------------------------------------------------------------------------+${RESET}"
@@ -97,42 +97,42 @@ endif
 
 build: dev-tools-check
 ifeq ($(FORCE),true)
-	@docker container rm -f $(CONTAINER)
-	@docker container prune
+	@docker SERVICE rm -f $(SERVICE)
+	@docker SERVICE prune
 endif
-	@docker compose build $(CONTAINER)
+	@docker compose build $(SERVICE)
 
 start: dev-tools-check
-	@docker compose up $(CONTAINER) --remove-orphans
+	@docker compose up $(SERVICE) --remove-orphans -d
 
 stop: dev-tools-check
-	@docker compose stop $(CONTAINER)
+	@docker compose stop $(SERVICE)
 
 lint: lint-tools-check
 	@$(foreach file, $(GIT_CHANGED_PYTHON_FILES), $(shell black ${file}; isort ${file}; flake8 ${file}))
 
 migrate: dev-tools-check
-	@docker compose run --rm $(CONTAINER) poetry run python ./manage.py migrate
+	@docker compose run --rm $(SERVICE) poetry run python ./manage.py migrate
 
 migrations: dev-tools-check
-	@docker compose run --rm $(CONTAINER) poetry run python ./manage.py makemigrations $(ARGS)
+	@docker compose run --rm $(SERVICE) poetry run python ./manage.py makemigrations $(ARGS)
 
 repl: dev-tools-check
-	@docker compose run --rm $(CONTAINER) poetry run python manage.py shell
+	@docker compose run --rm $(SERVICE) poetry run python manage.py shell
 
 shell:
-	@docker compose run --rm $(CONTAINER) /bin/bash
+	@docker compose run --rm $(SERVICE) /bin/bash
 
 test: dev-tools-check
 	@rm -rf coverage
 ifneq ($(and $(TEST-CASE),$(SRC)),)
-	@docker compose run --rm $(CONTAINER) coverage run --source=$(SRC) --branch ./manage.py test --no-input $(TEST-CASE); docker-compose run --rm $(CONTAINER) coverage $(REPORT)
+	@docker compose run --rm $(SERVICE) coverage run --source=$(SRC) --branch ./manage.py test --no-input $(TEST-CASE); docker-compose run --rm $(SERVICE) coverage $(REPORT)
 else ifneq ($(SRC),)
-	@docker compose run --rm $(CONTAINER) coverage run --source=$(SRC) --branch ./manage.py test --no-input; docker-compose run --rm $(CONTAINER) coverage $(REPORT)
+	@docker compose run --rm $(SERVICE) coverage run --source=$(SRC) --branch ./manage.py test --no-input; docker-compose run --rm $(SERVICE) coverage $(REPORT)
 else ifneq ($(TEST-CASE),)
-	@docker compose run --rm $(CONTAINER) coverage run --branch ./manage.py test --no-input $(TEST-CASE) --parallel
+	@docker compose run --rm $(SERVICE) coverage run --branch ./manage.py test --no-input $(TEST-CASE) --parallel
 else
-	@docker compose run --rm $(CONTAINER) coverage run --branch ./manage.py test --no-input --parallel
+	@docker compose run --rm $(SERVICE) coverage run --branch ./manage.py test --no-input --parallel
 endif
 	@rm -rf .coverage.*
 
@@ -147,11 +147,26 @@ clean-docs:
 clean: clean-docker clean-docs
 
 docs: dev-tools-check
-	@docker compose run --rm $(CONTAINER) poetry run sphinx-apidoc -f -o docs/source/ . ./*/test/*.py ./tests/*.py ./*/migrations/*.py ./*/tests/*.py ./settings/environments/*.py ./settings/*.py ./debug_snippet.py ./scinamic/update_compounds_from_scinamic.py
-	@cd docs && make html CONTAINER=$(CONTAINER)
+	@docker compose run --rm $(SERVICE) poetry run sphinx-apidoc -f -o docs/source/ . ./*/test/*.py ./tests/*.py ./*/migrations/*.py ./*/tests/*.py ./settings/environments/*.py ./settings/*.py ./debug_snippet.py ./scinamic/update_compounds_from_scinamic.py
+	@cd docs && make html SERVICE=$(SERVICE)
 
 poetry:
-	@docker compose run --rm $(CONTAINER) poetry $(CMD)
+	@docker compose run --rm $(SERVICE) poetry $(CMD)
 
 createsuperuser:
-	@docker compose run $(CONTAINER) poetry run python manage.py createsuperuser --noinput
+	@docker compose run $(SERVICE) poetry run python manage.py createsuperuser --noinput
+
+logs: dev-tools-check
+	@docker compose logs -f $(SERVICE)
+
+mtg:
+	@docker compose run $(SERVICE) poetry run python manage.py mtg
+
+hearthstone:
+	@docker compose run $(SERVICE) poetry run python manage.py hearthstone
+
+pokemon:
+	@docker compose run $(SERVICE) poetry run python manage.py pokemon
+
+marvel:
+	@docker compose run $(SERVICE) poetry run python manage.py marvel
