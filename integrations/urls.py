@@ -44,7 +44,7 @@ class FormViewSet(viewsets.ModelViewSet):
 class IntegerFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.IntegerForm
-        fields = "__all__"
+        fields = ["object", "field", "value"]
 
 class IntegerFormViewSet(viewsets.ModelViewSet):
     queryset = models.IntegerForm.objects.all()
@@ -53,7 +53,7 @@ class IntegerFormViewSet(viewsets.ModelViewSet):
 class FloatFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.FloatForm
-        fields = "__all__"
+        fields = ["object", "field", "value"]
 
 class FloatFormViewSet(viewsets.ModelViewSet):
     queryset = models.FloatForm.objects.all()
@@ -62,7 +62,7 @@ class FloatFormViewSet(viewsets.ModelViewSet):
 class CharacterFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.CharacterForm
-        fields = "__all__"
+        fields = ["object", "field", "value"]
 
 class CharacterFormViewSet(viewsets.ModelViewSet):
     queryset = models.CharacterForm.objects.all()
@@ -71,7 +71,7 @@ class CharacterFormViewSet(viewsets.ModelViewSet):
 class TextFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.TextForm
-        fields = "__all__"
+        fields = ["object", "field", "value"]
 
 class TextFormViewSet(viewsets.ModelViewSet):
     queryset = models.TextForm.objects.all()
@@ -80,7 +80,7 @@ class TextFormViewSet(viewsets.ModelViewSet):
 class BooleanFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.BooleanForm
-        fields = "__all__"
+        fields = ["object", "field", "value"]
 
 class BooleanFormViewSet(viewsets.ModelViewSet):
     queryset = models.BooleanForm.objects.all()
@@ -89,7 +89,7 @@ class BooleanFormViewSet(viewsets.ModelViewSet):
 class DateFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.DateForm
-        fields = "__all__"
+        fields = ["object", "field", "value"]
 
 class DateFormViewSet(viewsets.ModelViewSet):
     queryset = models.DateForm.objects.all()
@@ -98,7 +98,7 @@ class DateFormViewSet(viewsets.ModelViewSet):
 class URLFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.URLForm
-        fields = "__all__"
+        fields = ["object", "field", "value"]
 
 class URLFormViewSet(viewsets.ModelViewSet):
     queryset = models.URLForm.objects.all()
@@ -109,7 +109,7 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Service
-        fields = "__all__"
+        fields = ["name", "description", "field_set"]
 
 class ServiceViewSet(viewsets.ModelViewSet):
     queryset = models.Service.objects.all()
