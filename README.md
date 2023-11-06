@@ -8,9 +8,17 @@ It is designed as a way to learn the mechanics of torx make.
 
 ## Setup
 
-There is a Makefile, it has `make build` and `make start` which should be enough to get you up and running I think.
+To build the docker image: `make build`
 
-Please see the Makefile for specifics.
+To generate migrations: `make migrations`
+
+To apply migrations: `make migrate`
+
+To create a super user: `make createsuperuser`
+
+To run the web server: `make start`
+
+To read the logs: `make logs`
 
 ## Usage
 
@@ -20,13 +28,17 @@ There is a web server that starts up and runs on: http://localhost:8000/
 
 ### Description Of Problem
 
-At Elixir we often have to work with third party apis and ingest data into our system, we write bespoke programs that we call `biz_rules` to perform this integration. This test is a scale model of the sort of work we do quite frequently and is quite reflective of what a typical day might look like. Your task will be to write a biz_rule, we have selected some apis and you may choose whichever one you like and write the code in the matching `core/management/commands/<service>` file.
+At Elixir we often have to work with third party apis and ingest data into our system, we write bespoke programs that we call `biz_rules` to perform this integration. This test is a scale model of the sort of work we do quite frequently and is quite reflective of what a typical day might look like.
 
-You may need to use the django admin panel and create a service for your chosen api, you will then have to analyse the data from the api, create fields and forms to represent a single object returned from the api in the django admin.
+We have selected some apis and you may choose whichever one you like and write the code in the matching `core/biz_rule.py` file (please see the `Services` section below for details).
 
-It is important to think carefully how to represent a given object, once you have designed the object representation you will ingest data from the api.
+Your task can be broken down into three parts:
 
-Use the models directly and do not use the `customer-api` route when writing your biz_rule.
+* Study the api docs of the service you have chosen.
+* Write a biz_rule that consumes data from one of the api end points.
+* Ingests that into our test system using the provided models.
+
+Please note: You will not need to write your own models!
 
 ### The Services
 
