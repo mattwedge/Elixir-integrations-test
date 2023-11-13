@@ -5,7 +5,7 @@ from core.biz_rule import main
 
 
 class Command(BaseCommand):
-    help = "Ingests Random Marvel Data"
+    help = "Ingests Random API Data"
 
     def handle(self, *args, **options):
         main()

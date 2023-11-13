@@ -3,13 +3,11 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1
 ENV DB_HOST=mysql
 ENV DB_PASSWORD=Pa55w0rd
-ENV POETRY_VERSION=1.4.0
+ENV POETRY_VERSION=1.7.0
 ENV POETRY_HOME=/opt/poetry
 ENV POETRY_VENV=/opt/poetry-venv
 ENV POETRY_CACHE_DIR=/opt/.cache
-#ENV POETRY_VIRTUALENVS_IN_PROJECT=true
 
-# hadolint ignore=DL3008
 RUN apt update \
     && apt install -y --no-install-recommends default-mysql-client libmariadb-dev libpq-dev \
     && apt install -y --no-install-recommends libcurl4-openssl-dev \

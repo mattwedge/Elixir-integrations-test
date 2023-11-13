@@ -159,14 +159,5 @@ createsuperuser:
 logs: dev-tools-check
 	@docker compose logs -f $(SERVICE)
 
-mtg:
-	@docker compose run $(SERVICE) poetry run python manage.py mtg
-
-hearthstone:
-	@docker compose run $(SERVICE) poetry run python manage.py hearthstone
-
-pokemon:
-	@docker compose run $(SERVICE) poetry run python manage.py pokemon
-
-marvel:
-	@docker compose run $(SERVICE) poetry run python manage.py marvel
+bizrule:
+	@docker compose run $(SERVICE) poetry run python manage.py bizrule

@@ -20,6 +20,8 @@ To run the web server: `make start`
 
 To read the logs: `make logs`
 
+Please note: There's a `env.example` file, this project uses a `.env` file, please make sure you use the example file to initially set up environmental variables.
+
 ## Usage
 
 There is a web server that starts up and runs on: http://localhost:8000/
@@ -50,9 +52,4 @@ Please note: You will not need to write your own models!
 
 ### Running your biz_rule
 
-Running your code is as simple as `make <service>` where the service is one of:
-
-- mtg
-- hearthstone
-- pokemon
-- marvel
+Running your code is as simple as `make bizrule`
