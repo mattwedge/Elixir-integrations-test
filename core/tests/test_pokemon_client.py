@@ -32,7 +32,7 @@ class MockResponse:
 
 
 class PokemonClientTests(TestCase):
-    """Tests for the pokemon client for integrations"""
+    """Tests for the Pokemon client for integrations"""
 
     @patch("core.clients.pokemon_client.requests")
     def test_client_single_page(self, mrequests):
