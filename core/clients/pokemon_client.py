@@ -60,10 +60,12 @@ class PokemonClient(BaseClient):
         },
     }
 
-    def retrieve_object_json(self):
+    def retrieve_object_json(self, batch_number):
+        num_pages_per_batch = 10
+
         values = []
 
-        next_page_number = 0
+        next_page_number = (batch_number - 1) * num_pages_per_batch
         while True:
             next_page_number += 1
             self.logger.info(f"Requesting page {next_page_number}")
@@ -76,6 +78,9 @@ class PokemonClient(BaseClient):
             values += parsed_json
 
             if res_json["count"] < 250:
+                break
+
+            if next_page_number >= batch_number * num_pages_per_batch:
                 break
 
         return values

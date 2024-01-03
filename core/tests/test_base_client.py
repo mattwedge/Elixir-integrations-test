@@ -24,8 +24,11 @@ class ValidTestClient(BaseClient):
     service_description = test_service_description
     json_fields = test_json_fields
 
-    def retrieve_object_json(self):
-        return test_object_json
+    def retrieve_object_json(self, batch_number):
+        if batch_number == 1:
+            return test_object_json
+
+        return []
 
 
 class NoFieldTestClient(BaseClient):

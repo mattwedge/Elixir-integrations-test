@@ -40,17 +40,35 @@ class PokemonClientTests(TestCase):
         self.assertFalse(Service.objects.filter(name="Pokemon Cards").exists())
 
         mrequests.get = MagicMock()
-        mrequests.get.return_value = MockResponse(
-            data={
-                "pageSize": 250,
-                "count": 2,
-                "page": 1,
-                "data": [
-                    {**DEFAULT_POKEMON},
-                    {**DEFAULT_POKEMON, "id": "__OTHER_ID__", "name": "__OTHER_NAME__"},
-                ],
-            }
-        )
+
+        # The first request should give 2 pokemon cards
+        # and the second request should give none
+        mrequests.get.side_effect = [
+            MockResponse(
+                data={
+                    "pageSize": 250,
+                    "count": 2,
+                    "page": 1,
+                    "data": [
+                        {**DEFAULT_POKEMON},
+                        {
+                            **DEFAULT_POKEMON,
+                            "id": "__OTHER_ID__",
+                            "name": "__OTHER_NAME__",
+                        },
+                    ],
+                }
+            ),
+            MockResponse(
+                data={
+                    "pageSize": 250,
+                    "count": 0,
+                    "page": 2,
+                    "data": [],
+                }
+            ),
+        ]
+
         client = PokemonClient()
         client.run_integration()
 

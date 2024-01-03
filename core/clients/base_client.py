@@ -53,12 +53,16 @@ class BaseClient(ABC):
         """A description of the service"""
 
     @abstractmethod
-    def retrieve_object_json(self) -> List[Any]:
-        """Get a list of JSON objects from the given API"""
+    def retrieve_object_json(self, batch_number: int) -> List[Any]:
+        """Get a list of JSON objects from the given API.
 
-    def _set_object_json(self):
+        Should return [] if the batch is empty and this will trigger the end
+        of the process. i.e. no more batches will be processed
+        """
+
+    def _set_object_json(self, batch_number):
         """Retrieve JSON objects from the given API and set them on the client instance"""
-        self.json_objects = self.retrieve_object_json()
+        self.json_objects = self.retrieve_object_json(batch_number)
 
     def _clear_data(self):
         """Clear any existing data
@@ -107,6 +111,7 @@ class BaseClient(ABC):
 
     def _save_objects(self):
         """Save the objects in self.json_objects"""
+        self.logger.info(f"Saving {len(self.json_objects)} objects")
         for json_object in self.json_objects:
             new_object = Object.objects.create(service=self.service)
 
@@ -127,5 +132,12 @@ class BaseClient(ABC):
         """The entrypoint to run the integration"""
         self._clear_data()
         self._setup_models()
-        self._set_object_json()
-        self._save_objects()
+
+        batch_number = 1
+        while True:
+            self._set_object_json(batch_number)
+            if not self.json_objects:
+                break
+
+            self._save_objects()
+            batch_number += 1
