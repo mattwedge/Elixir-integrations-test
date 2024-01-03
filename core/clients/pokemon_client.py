@@ -78,7 +78,4 @@ class PokemonClient(BaseClient):
             if res_json["count"] < 250:
                 break
 
-            if res_json["page"] == 10:
-                break
-
         return values
