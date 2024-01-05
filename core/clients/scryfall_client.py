@@ -4,7 +4,6 @@ import requests
 from core.clients.base_client import BaseClient
 
 SCRYFALL_BASE_URL = "https://api.scryfall.com"
-JSON_SAVE_LOCATION = "/tmp/"
 
 
 class ScryfallClient(BaseClient):
@@ -55,9 +54,13 @@ class ScryfallClient(BaseClient):
         },
     }
 
-    def __init__(self):
+    def __init__(self, json_save_location="/tmp/"):
         super().__init__()
         self.printed_num_lines = False
+        self.json_save_location = json_save_location
+
+        if not os.path.exists(json_save_location):
+            os.makedirs(json_save_location)
 
     def retrieve_object_json(self, batch_number):
         res = requests.get(f"{SCRYFALL_BASE_URL}/bulk-data")
@@ -67,7 +70,7 @@ class ScryfallClient(BaseClient):
         ][0]["download_uri"]
 
         file_name = json_download_uri.split("/")[-1]
-        file_location = f"{JSON_SAVE_LOCATION}{file_name}"
+        file_location = f"{self.json_save_location}{file_name}"
 
         if not os.path.exists(file_location):
             self.logger.info(f"No JSON file found at {file_location} - downloading")

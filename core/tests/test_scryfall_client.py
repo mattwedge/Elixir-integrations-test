@@ -1,4 +1,5 @@
 import json
+import os
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
@@ -32,12 +33,11 @@ class MockResponse:
 
 
 class ScryfallClientTests(TestCase):
-    """Tests for the Scryfall client for integrations
-    TODO: mock os and file access stuff
-    """
+    """Tests for the Scryfall client for integrations"""
 
     @patch("core.clients.scryfall_client.requests")
-    def test_client(self, mrequests):
+    @patch("core.clients.scryfall_client.os")
+    def test_client(self, mos, mrequests):
         """Test that the client works as expected"""
         self.assertFalse(
             Service.objects.filter(name="Magic The Gathering Cards").exists()
@@ -72,7 +72,16 @@ class ScryfallClientTests(TestCase):
             * 2
         )
 
-        client = ScryfallClient()
+        mos.path.exists = MagicMock()
+
+        # First only create the test file location if needed
+        # Second assume that the JSON file does not exist
+        # From then on all paths exist
+        mos.path.exists.side_effect = [os.path.exists("/tmp/test/"), False, True, True]
+
+        mos.makedirs = os.makedirs
+
+        client = ScryfallClient(json_save_location="/tmp/test/")
         client.run_integration()
 
         self.assertTrue(
