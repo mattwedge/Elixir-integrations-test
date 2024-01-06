@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import os
 from typing import Any, List, TypedDict, Dict
 
 from core.models import (
@@ -134,6 +135,8 @@ class BaseClient(ABC):
         self._setup_models()
 
         batch_number = 1
+        max_batches = int(os.getenv("MAX_BATCHES_PER_API", "0"))
+
         while True:
             self._set_object_json(batch_number)
             if not self.json_objects:
@@ -141,3 +144,6 @@ class BaseClient(ABC):
 
             self._save_objects()
             batch_number += 1
+
+            if max_batches and batch_number > max_batches:
+                break
